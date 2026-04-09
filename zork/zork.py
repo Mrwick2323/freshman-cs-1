@@ -76,6 +76,8 @@ def cmds():
     print(' stats                  - prints the players stats')
     print(' backpack/inv/inventory - prints players backpack')
     print(' collect                - collects gold at an area')
+    print(' buy                    - purchases a specified item')
+    print(' equip                  - equips the specified item')
     print(' Tip: sometimes if an enemys speed stat is higher than yours it will attack first')
 
 def view(map, location):
@@ -566,7 +568,7 @@ def run():
     import builtins
     mapf=builtins.map
     starttime = time.time()
-    money = 0
+    money = 1000
     ###############################
     #	   	    Entities          #
     ###############################
@@ -578,6 +580,7 @@ def run():
     "name": f"{random.choice(first)} {random.choice(last)}",
     "speed":5,
     "health":10,
+    "maxhealth":10,
     "backpack" : ['','','','','','','','','',''],
     "effects":[],
     "accuracy":80,
@@ -936,11 +939,12 @@ def run():
             elif 'buy ' in act:
                 if location=='shop' or location=='night shop':
                     act=act.split(' ')
-                    if (item:=act[act.index('buy')+1]) in map[location]['objects'].keys():
+                    if (item:=' '.join(act[act.index('buy')+1:])) in map[location]['objects']:
                         if player['money']>=items['shop'][item]['cost']:
                             if '' in player['backpack']:
                                 player['money']-=items['shop'][item]['cost']
                                 player['backpack'][player['backpack'].index('')]=item
+                                print(f'You have successfully purchased the {item}. Have a nice day!')
                             else:
                                 print('Your backpack is too full!')
                         else:
@@ -951,6 +955,23 @@ def run():
                                 print('brokie')
                     else:
                         print("That item isn't for sale.")
+            elif 'equip' in act:
+                act=act.split(' ')
+                item=' '.join(act[act.index('equip')+1:])
+                if item in items['weapons']:
+                    player['weapon']['name']=item
+                    player['weapon']['damage']=items['weapons'][item]['damage']
+                    player['backpack'].remove(item)
+                    player['backpack'].append('')
+                    print(f'You have successfully equipped the {item}')
+                if item in items['armor']:
+                    player['armor']['name']=item
+                    player['armor']['def']=items['armor'][item]['defense']
+                    player['health']=10+player['armor']['def']
+                    player['maxhealth']=10+player['armor']['def']
+                    player['backpack'].remove(item)
+                    player['backpack'].append('')
+                    print(f'You have successfully equipped the {item}')
             elif ('grab' in act or 'take' in act or 'pick up' in act):
                 if 'grab' in act:
                     w='grab'
