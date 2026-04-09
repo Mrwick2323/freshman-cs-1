@@ -834,7 +834,7 @@ def run(deathtext):
         "entities": []
         },
     "storage shed": {
-        "description": "A small, surprisingly empty storage shed. You find a small chipped porcelain figure on a shelf, potentially lawn decoration. there might be a coin under the shelves",
+        "description": "A small, surprisingly empty storage shed. You see a small porcelain figure on a shelf, once broken, but it seems to have been fixed. There might be a coin under the shelves",
         "directions": {"north":"west castle entrance", "east":"storage shed", "south":"wall", "west":"west of the mansion"},
         "items": ["figure"],
         "objects": [],
