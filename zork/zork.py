@@ -855,16 +855,15 @@ def run(deathtext):
         "description": "An empty shop, items line the walls.",
         "directions": {"north":"wall", "south":"castle courtyard", "east":"wall", "west":"wall", "in":"secret room"},
         "items": ["common sword","speed potion","death potion","strength potion","leather armor","money potion","resilience potion"],
-        'gold':0,
+        'gold':30,
         "objects": [""],
         "entities": [],
         },
     "secret room": {
         "description": "A,secret room within the town shop, items are scattered on the floor. only take one or the owner might notice",
         "directions": {"north":"wall", "south":"shop", "east":"wall", "west":"wall", "out":"shop"},
-        "items": [],
+        "items": ["common sword","speed potion","death potion","strength potion","leather armor","money potion","resilience potion"],
         "gold": 3,
-        "requirements":"True if 'shop key' in player['backpack'] ",
         "objects": [""],
         "entities": []
         },
@@ -1037,7 +1036,7 @@ def run(deathtext):
             elif 'look' in act:
                 if location == 'shop':
                     print('		'.join(map[location]["objects"]))
-                elif location == 'night shop':
+                elif location in ['night shop','secret room']:
                     print('		'.join(map[location]["items"]))
                 else:
                     print('only usable in the shop!')
@@ -1208,19 +1207,25 @@ def run(deathtext):
                         else:
                             print("Shopkeeper: Wrong!")
             elif ('grab' in act or 'take' in act or 'pick up' in act):
-                if 'grab' in act:
-                    w='grab'
-                if 'take' in act:
-                    w='take'
-                if 'pick up' in act:
-                    w='up'
-                tindex = act.index(w)+len(w)
-                if act[tindex+1:] in map[location]["items"]:
-                    player["backpack"][player["backpack"].index('')]=map[location]["items"].pop(map[location]["items"].index(act[tindex+1:]))
-                    print(f'{act[tindex+1:]} picked up.')
+                if location != 'secret room':
+                    if 'grab' in act:
+                        w='grab'
+                    if 'take' in act:
+                        w='take'
+                    if 'pick up' in act:
+                        w='up'
+                    tindex = act.index(w)+len(w)
+                    if act[tindex+1:] in map[location]["items"]:
+                        player["backpack"][player["backpack"].index('')]=map[location]["items"].pop(map[location]["items"].index(act[tindex+1:]))
+                        print(f'{act[tindex+1:]} picked up.')
+                    else:
+                        print(act[tindex+1:], end=' ')
+                        print('is not here!')
                 else:
-                    print(act[tindex+1:], end=' ')
-                    print('is not here!')
+                    if 'secrets' in locals().keys()+globals().keys():
+                        secrets+=1
+                    else:
+                        secrets=1
             elif 'drop' in act:
                 act=act.split(' ')
                 item=act[act.index('drop')+1:][0]
@@ -1256,13 +1261,19 @@ def run(deathtext):
             elif ('west'  in act or 'left'  in act):  
                 tl='west'
             elif ('in' in act or 'enter' in act):
-                if location in ['shop' , 'night shop' , 'north of the mansion' , 'magic tower' , 'dungeon entrance']:
+                if location in ['north of the mansion' , 'magic tower']:
+                    tl='in'
+                elif location in ['shop','night shop'] and 'shop' in player['keys']:
+                    tl='in'
+                elif location=='dungeon entrance' and 'dungeon' in player['keys']:
                     tl='in'
                 else:
                     print("you cant go in here!")
             if tl!='noneaction':
                 if location=='castle courtyard' and tl=='north':
                     if tct[0] in ['8','9','10','11'] and tct[-1]=='A.M.' or tct[0] in ['12','01','02','03','04','05'] and tct[-1]=='P.M.':
+                        if 'secrets' in globals().keys()+locals().keys() and secrets>1:
+                            fight(map,location,player,'shopkeeper')
                         location='shop'
                         print(f'You are now at the {location}!\n')
                         view(map,location)
