@@ -1006,12 +1006,10 @@ def run(deathtext):
                     run("You lost a fight in the dungeon. Return once you're more prepared")
                 else:
                     player['money']+=outcome[0]
-                    try:
-                        temp=player['keys']
-                        
-                    except:
-
-
+                    if 'dungeon keys' in player.keys():
+                        player['dungeon keys']+=outcome[1]
+                    else:
+                        player['dungeon keys']=outcome[1]
             tct=getct(starttime)
             tl='noneaction'
             condition=False
