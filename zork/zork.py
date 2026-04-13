@@ -289,13 +289,19 @@ def dungeonfight(killmap,player):
                 player['backpack'].pop(player['backpack'].index('speed potion'))
             else:
                 print('That has no use here!')
-def warpsys(p):
+def warpsys(pastlocations):
     print("You see a large room before you, the walls lined with strange entryways of some kind. As you look inside one, you see what seems to be outside of the lair.")
     while (act:=True) and (i:=1):
         print(map[p[i-1]]['description'])
-        act=input(f"Would you like to enter? (enter/next) {i/len(p)}")
+        act=input(f"Would you like to enter? (enter/next) {i/len(pastlocations)}")
         if 'enter' in act or 'in' in act or 'yes' in act or 'y' in act:
-            
+            location=pastlocations[i-1]
+            break
+        elif 'leave' in act or 'exit' in act or 'out' in act:
+            location='boss room'
+        else:
+            i+=1
+            i//=len(pastlocations)
 def dungeonsys(player):
     m=1
     mapf=builtins.map
@@ -635,12 +641,12 @@ def run(deathtext):
 
     first = ["Bronster","Brownarry","Browiz","Brohat","Elmbrown","Gwydjade","Jadewise","Gandalf","Brownspell","Jadelegend","Merlde","Wandrown","Jabus"]
     last = ["Harkjade","Grangrown","Jadedore","Harkde","Grangjade","Brownden","Brownspell","Jashot","Harkrown","Grangrown","Dumblebrown","Harkrown","Rongspell"]
-
+    #player def
     player = {
     "stage":0,
     "name": f"{random.choice(first)} {random.choice(last)}",
     "keys":[],
-    "speed":5,
+    "speed":500,
     "health":10,
     "strength":0,
     "resilience":0,
@@ -651,11 +657,11 @@ def run(deathtext):
     "diddungeon":False,
     "weapon":{
         "name": "fists",
-        "damage" : 1,
+        "damage" : 1000,
         },
     "armor":{
         "name":"none",
-        "def":0,
+        "def":1000,
     },
     }
     enemies = {
