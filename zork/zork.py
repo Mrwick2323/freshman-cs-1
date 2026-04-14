@@ -2,6 +2,8 @@ import random
 import math
 import time
 import builtins
+import warnings
+warnings.filterwarnings('ignore')
 words = [
     "apple", "river", "mountain", "shadow", "crystal", "flame", "ocean", "forest",
     "storm", "cloud", "stone", "ember", "glow", "breeze", "thunder", "lightning",
@@ -226,10 +228,7 @@ def derivative(f,x):
 def claim(killmap,m):
     gold=0
     for i in killmap:
-        gold+=i[0]*(i[1]+random.randint(-5,5))
-        for j in range(i[0]):
-            if random.randint(0,i[0])==0:
-                key+=1
+        gold+=i[1]*(i[1]+(w if (w:=random.randint(5))+i[1]!=0 else 0))
     gold*=2**m
     return gold
 def dungeonfight(killmap,player):
@@ -420,6 +419,8 @@ def dungeonsys(player):
                 surroundings = [['⬜' if j in ["🟥","⬜"] else j for j in i] for i in surroundings]
                 surroundings[1][1]='🟥'
                 print('\n'.join(list(mapf(lambda x: ''.join(x), surroundings))))
+                print('\n')
+                print('\n'.join(list(mapf(lambda x: ''.join(x), dungeon))))
             printsurroundings()
             dungeondirection=input('Which way would you like to go? ')
             if ('north' in dungeondirection or dungeondirection in ['n','go n','up','go up','u']) and pos[0]>0 and dungeon[pos[0]-1][pos[1]]!='⬛':
@@ -676,13 +677,13 @@ def run(deathtext):
     "keys":[],
     "speed":50,
     "health":10,
-    "strength":1000,
+    "strength":100,
     "resilience":0,
     "maxhealth":10,
     "backpack" : ['','','','','','','','','',''],
     "accuracy":80,
     "money":money,
-    "diddungeon":False,
+    "diddungeon":True,
     "weapon":{
         "name": "fists",
         "damage" : 1,
@@ -984,13 +985,13 @@ def run(deathtext):
         "entities": []
         },
     "boss room": {
-        "description": "a damp cave light by torches on the walls. theres a hideous monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
+        "description": "A damp cave light by torches on the walls. theres a hideous monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
         "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard", "in":"warp room"},
         "gold": 15,
         "entities": ["hydra",]
         },
     "mansion interior": {
-        "description": "ornate interior of the city mansion. the lord is sitting his desk doing paperwork. ",
+        "description": "Ornate interior of the city mansion. The lord is sitting his desk doing paperwork. His head turns to face you as you enter.\n",
         "directions": {"north":"north of the mansion", "south":"wall", "east":"wall", "west":"wall"},
         "items": ["sturdy armor",],
         "gold": 15,
@@ -1061,13 +1062,12 @@ def run(deathtext):
         while player["health"]>0:
             if location=='dungeon':
                 outcome=dungeonsys(player)
-                print(outcome)
                 #YOU NEED TO FIX THIS #########################################################################################
                 ####################
                 #################
                 ####################33
                 #################33
-                if not outcome:
+                if outcome is False:
                     run("You lost a fight in the dungeon. Return once you're more prepared.")
                 else:
                     player['backpack'][player['backpack'].index('')]=f'dungeon voucher: {outcome}'
@@ -1077,11 +1077,10 @@ def run(deathtext):
                 location=warpsys(past_locations,map)
             elif location=='mansion interior':
                 if not player['armor reward']:
-                    player['armor reward']=True
-                    print('King: Hello! Have you come for a reward?\n')
-                    print('You: Yes.\n')
-                    print('King: Let me see your voucher.\n')
-                    print("\033[3mYou hand the king your voucher.\033[0m")
+                    input('Lord: Hello! Have you come for a reward?\n')
+                    input('You: Yes.\n')
+                    print('Lord: Let me see your voucher.\n')
+                    print("\033[3mYou hand the lord your voucher.\033[0m\n")
                     i=0
                     g=False
                     dvp=0
@@ -1090,20 +1089,28 @@ def run(deathtext):
                             dvp=float(player['backpack'][i].split(' ')[-1])
                             player['backpack'][i]=''
                             g=True
-                        if i==len(player['backpack']-1):
+                        if i==len(player['backpack'])-1:
                             g=3
                         i+=1
                     if g!=3:
-                        print(f'King: Would you like armor, or gold?\n')
+                        print(f'Lord: Would you like armor, or gold?\n')
                         choice=input('You: ')
+                        print('\n')
+                        print()
                         if 'armor' in choice:
-                            print('King: Okay then. It is yours.')
-                            player['backpack'][player[backpack.index('')]]='sturdy armor'
+                            print('Lord: Okay then. It is yours.')
+                            player['backpack'][player['backpack'].index('')]='sturdy armor'
                         elif 'gold' in choice:
-                            print(f'King: Okay. Here is your pay.')
-                            print(f"\033[3mThe king hands you {dvp}\033[0m")
+                            print(f'King: Okay. Here is your pay.\n')
+                            print(f"\033[3mThe lord hands you {dvp} gold\033[0m")
                             player['money']+=dvp
                             dvp=0
+                    else:
+                        print(f'Lord: Okay. Here is your pay.')
+                        print(f"\033[3mThe lord hands you {dvp}\033[0m")
+                        player['money']+=dvp
+                        dvp=0
+                    location='north of the mansion'
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1351,7 +1358,7 @@ def run(deathtext):
                     tl='in'
                 if location=='north of the mansion' and player['diddungeon']:
                     tl='in'
-                else:
+                elif location=='north of the mansion':
                     print('You see a flyer on the wooden door; it reads:')
                     print('-------- HELP WANTED ---------')
                     print('| We are looking for someone |')
@@ -1365,30 +1372,33 @@ def run(deathtext):
                     print('|          killed.           |')
                     print('------------------------------\n')
                     print("You: Maybe I should return once i've dealth with that.")
-                if location in ['shop','night shop'] and 'shop' in player['keys']:
+                elif location in ['shop','night shop'] and 'shop' in player['keys']:
                     tl='in'
+                elif location in ['shop','night shop']:
+                    print('The door is locked.')
                 elif location=='dungeon entrance' and 'dungeon' in player['keys']:
                     tl='in'
+                elif location=='dungeon entrance':
+                    print('You pull on the door, it does not budge. Perhaps you need a key?')
                 elif location=='boss room' and player['diddungeon']:
                     tl='in'
+                elif location=='boss room':
+                    print('You must complete the dungeon first.')
                 else:
-                    print("you cant go in here yet!")
+                    print("You cant go in here!")
             if tl!='noneaction':
                 if location=='castle courtyard' and tl=='north':
                     if tct[0] in ['8','9','10','11'] and tct[-1]=='A.M.' or tct[0] in ['12','01','02','03','04','05'] and tct[-1]=='P.M.':
                         if 'secrets' in globals().keys()+locals().keys() and secrets>1:
                             fight(map,location,player,'shopkeeper')
                         location='shop'
-                        print(f'You are now at the {location}!\n')
                         view(map,location)
                     elif 'shop' in player['keys']:
                         location='night shop'
-                        print(f'You are now at the {location}!\n')
                         view(map,location)
                 elif "wall" not in map[location]['directions'][tl]:
                     location = map[location]['directions'][tl]
                     past_locations+=[location]
-                    print(f'You are now at the {location}!\n')
                     view(map,location)
                     if location == 'den of the giant lizard':
                         print('You look around, getting more anxious the longer the silence of the tense, moist air of the cave is unbroken. Suddenly, you see the large figure stand up and face you.')
