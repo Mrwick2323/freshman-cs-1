@@ -1070,7 +1070,10 @@ def run(deathtext):
             elif location=='warp room':
                 location=warpsys(past_locations,map)
             elif location=='mansion interior':
-
+                if not player['armor reward']:
+                    player['armor reward']=True
+                    print('King: Hello! Have you come for a reward?\n')
+                    print('You: Yes.')
             tct=getct(starttime)
             tl='noneaction'
             condition=False
