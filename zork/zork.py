@@ -860,7 +860,7 @@ def run(deathtext):
         "entities": []
     },
     "dungeon":{
-        "description": "You are in a cold, darlk, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
+        "description": "You are in a cold, dark, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
         "directions": {"east":"castle courtyard", "south":"dungeon entrance", "west":"forest clearing", "north":"forest wall"},
         "items": [],
         'gold':0,
@@ -986,7 +986,7 @@ def run(deathtext):
         "entities": []
         },
     "boss room": {
-        "description": "A damp cave light by torches on the walls. theres a hideous monster with 3 scaly heads, it turns to face you, and you make make out the countless scars on its body.",
+        "description": "A damp cave light by torches on the walls. theres a hideous monster with 3 scaly heads, it turns to face you, and you make out the countless scars on its body.",
         "directions": {"north":"wall", "east":"wall", "south":"wall", "west":"den of the giant lizard", "out":"den of the giant lizard", "in":"warp room"},
         "gold": 15,
         "entities": ["hydra",]
