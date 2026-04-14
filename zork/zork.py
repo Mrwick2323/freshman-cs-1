@@ -166,10 +166,10 @@ def fight(map, location, player, enemy, enemies):
             print('''
 
             ''')
-            j=input("attack/flee/items")
+            j=input("attack/flee/items? ")
             if "attack" in j:
-                enemies[enemy]["health"]-=player["weapon"]["damage"]
-                print(f'you attacked {enemy} for {player["weapon"]["damage"]} Damage!')
+                enemies[enemy]["health"]-=player["weapon"]["damage"]+player['strength']
+                print(f'you attacked {enemy} for {player["weapon"]["damage"]+player['strength']} Damage!')
             elif "items" in j:
                 while True:
                     print(">>>> ")
@@ -182,32 +182,40 @@ def fight(map, location, player, enemy, enemies):
                     elif "use" in x:
                         z = input(">>>> ")
                         if z in player["backpack"]:
-                            if "health potion" in z:
-                                player["health"] += 15
-                                player["backpack"].remove(z)
-                                print("used item")
-                            elif "speed potion" in z:
+                            if "health" in z:
+                                player["health"] += (gain:=(10+player['armor']['def']+player['resilience'])/2)
+                                player['backpack'].remove('health potion')
+                                print(f'Successfully used strength potion! You gained {gain} health!')
+                            elif "speed" in z:
                                 player["speed"] += 5
-                                player["backpack"].remove(z)
-                                print("used item")
-                            elif "strength potion" in z:
-                                player["weapon"]["damage"] *= 2
-                                player["backpack"].remove(z)
-                                print("used item")
-                            elif "death potion" in z:
-                                print("you died")
-                                player["health"] = 0
+                                player['backpack'].remove('speed potion')
+                                print('Successfully used strength potion! You gained 5 speed!')
+                            elif "strength" in z:
+                                player["strength"]+=10
+                                player['backpack'].remove('strength potion')
+                                print('Successfully used strength potion! You gained 10 strength!')
+                            elif "death" in z:
+                                print('Successfully used Death potion!')
+                                run("why would you drink a death potion.")
+                            elif 'resilience' in z:
+                                player['resilience']+=5
+                                player['backpack'].remove('resilience potion')
+                                print('Successfully used resilience potion, you gained 5 resilience!')
+                            elif 'money' in z:
+                                player['money']+=(gain:=random.randint(-300,300)/10)
+                                player['backpack'].remove('money potion')
+                                print(f'Successfully used money potion! You gained {gain} gold!')
                             else:
-                                print("nothing happened")
+                                print("That's not how you use that!")
                         else:
-                            print("you dont have this item")
+                            print("You dont have this item")
             elif "flee" in j:
                 if player["speed"] >= enemies[enemy]["speed"]:
                     print(f"You successfully fled from the {enemy}!")
                     return
                 else:
                     print(f"You failed to flee from the {enemy}!")
-            if enemies[enemy]["health"]>0:
+            if enemies[enemy]["health"]>0 and j:
                 player["health"]-=enemies[enemy]["damage"]
     elif enemy not in map[location]["entities"]:
         print("Enemy not here")
@@ -250,9 +258,9 @@ def dungeonfight(killmap,player):
             print('You cannot escape from dungeon encounters')
         if dfi in ['fight','attack']:
             if player['weapon']['name']=='ancient staff':
-                print(f'You attacked the ancient spirit for {(dam:=20+random.randint(-20,20)/10)}!\n')
+                print(f'You attacked the ancient spirit for {(dam:=20+random.randint(-20,20)/10)+player['strength']}!\n')
             else:
-                print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10)}!\n')
+                print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10+player['strength'])}!\n')
             enemy['health']-=dam
             if enemy['health']<=0:
                 print('You see the ancient spirit flail in pain, eventually returning to nothing but a pile of ashes on the floor.\n')
@@ -268,13 +276,15 @@ def dungeonfight(killmap,player):
         if dfi=='items':
             # speed potion, death potion, strength potion, money potion
             print('\n   '.join(player['backpack'].join(' ').split(' ')))
-            dfit=input('What would you like to use?')
+            dfit=input('What would you like to use? ')
             if 'health' in dfit and 'health potion' in player['backpack']:
                 player['health']+=5
                 player['backpack'].pop(player['backpack'].index('health potion'))
+                print('Successfully used health potion!')
             elif 'speed' in dfit and 'speed potion' in player['backpack']:
                 player['speed']+=5
                 player['backpack'].pop(player['backpack'].index('speed potion'))
+                print('Successfully used speed potion!')
             elif 'death' in dfit and 'death potion' in player['backpack']:
                 player['backpack'].pop(player['backpack'].index('death potion'))
                 print('You die.')
@@ -283,25 +293,38 @@ def dungeonfight(killmap,player):
                 m+=1
                 killmap[-1][-1]+=(gain:=random.randint(-3,3))
                 print(f'You will gain {killmap[-1][0]*(gain+5)*2**m} to {killmap[-1][0]*(gain-5)*2**m} gold (if you make it out alive.)')
-                player['backpack'].pop(player['backpack'].index('speed potion'))
+                player['backpack'].pop(player['backpack'].index('money potion'))
+                print('Successfully used money potion!')
             elif 'strength' in dfit and 'strength potion' in player['backpack']:
                 player['weapon']['damage']*=2
-                player['backpack'].pop(player['backpack'].index('speed potion'))
+                player['backpack'].pop(player['backpack'].index('strength potion'))
+                print('Successfully used strength potion!')
+            elif 'resilience' in dfit and 'resilience potion' in player['backpack']:
+                player['resilience']+=5
+                print('Successfully used resilience potion!')
             else:
                 print('That has no use here!')
-def warpsys(pastlocations):
+def debug():
+    while True:
+        exec((cmd:=input('command: ')))
+        print(eval(cmd))
+def warpsys(pastlocations,map):
     print("You see a large room before you, the walls lined with strange entryways of some kind. As you look inside one, you see what seems to be outside of the lair.")
-    while (act:=True) and (i:=1):
+    i=1
+    print('\n---------------------------------\n')
+    while (act:=True):
+        
         print(map[pastlocations[i-1]]['description'])
-        act=input(f"Would you like to enter? (enter/next) {i/len(pastlocations)}")
+        print('\n')
+        act=input(f"Would you like to enter? (enter/next) {i}/{len(pastlocations)} ")
+        print('\n---------------------------------\n')
         if 'enter' in act or 'in' in act or 'yes' in act or 'y' in act:
-            location=pastlocations[i-1]
-            break
+            return pastlocations[i-1]
         elif 'leave' in act or 'exit' in act or 'out' in act:
-            location='boss room'
-        else:
+            return 'boss room'
+        elif 'next' in act or 'no' in act or 'n' in act:
             i+=1
-            i//=len(pastlocations)
+            i=i%len(pastlocations)
 def dungeonsys(player):
     m=1
     mapf=builtins.map
@@ -343,11 +366,12 @@ def dungeonsys(player):
             if fflag:
                 outcome=dungeonfight(killmap,player)
                 if not outcome[0]:
-                    return outcome
+                    run('You died to an ancient spirit.')
                 else:
                     killmap[-1][-1]+=1
                     m+=outcome[-1]
                 fflag=False
+                dungeon[cy][cx]='⬜'
             surroundings=[[],[],[]]
             pastpos=pos.copy()
             def printsurroundings():
@@ -395,8 +419,7 @@ def dungeonsys(player):
                 surroundings[1][1]='🟥'
                 print('\n'.join(list(mapf(lambda x: ''.join(x), surroundings))))
             printsurroundings()
-            print('\n'.join(list(mapf(lambda x: ''.join(x), dungeon))))
-            dungeondirection=input('Which way would you like to go?')
+            dungeondirection=input('Which way would you like to go? ')
             if ('north' in dungeondirection or dungeondirection in ['n','go n','up','go up','u']) and pos[0]>0 and dungeon[pos[0]-1][pos[1]]!='⬛':
                     pos[0]-=1
             elif ('east' in dungeondirection or dungeondirection in ['e','go e','right','go right','r']) and pos[1]<dim*2-2 and dungeon[pos[0]][pos[1]+1]!='⬛':
@@ -636,7 +659,7 @@ def run(deathtext):
     mapf=builtins.map
     
     starttime = time.time()
-    money = 1000
+    money = 0
     ###############################
     #	   	    Entities          #
     ###############################
@@ -648,9 +671,9 @@ def run(deathtext):
     "stage":0,
     "name": f"{random.choice(first)} {random.choice(last)}",
     "keys":[],
-    "speed":500,
+    "speed":5,
     "health":10,
-    "strength":0,
+    "strength":1000,
     "resilience":0,
     "maxhealth":10,
     "backpack" : ['','','','','','','','','',''],
@@ -659,11 +682,11 @@ def run(deathtext):
     "diddungeon":False,
     "weapon":{
         "name": "fists",
-        "damage" : 1000,
+        "damage" : 1,
         },
     "armor":{
         "name":"none",
-        "def":1000,
+        "def":0,
     },
     }
     enemies = {
@@ -825,7 +848,7 @@ def run(deathtext):
 
     map = {
     "warp room":{
-        "description": "You are in a cold, darlk, wet room, you can barely see a few feet in front of your face. The door has closed behind you.",
+        "description": "-------------------------------\n",
         "directions": {"east":"wall", "south":"wall", "west":"wall", "north":"wall","out":'boss room'},
         "items": [],
         'gold':60,
@@ -1046,7 +1069,7 @@ def run(deathtext):
                     player['diddungeon']=True
                 location='dungeon entrance'
             elif location=='warp room':
-                warpsys(past_locations)
+                location=warpsys(past_locations,map)
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1287,7 +1310,7 @@ def run(deathtext):
                 tl='east'
             elif ('south' in act or 'down' in act) or act in ['s','go s','d','go d']:
                 tl='south'
-            elif ('west'  in act or 'left'  in act):  
+            elif ('west'  in act or 'left'  in act) or act in ['w','go w','l','go l']:  
                 tl='west'
             elif ('in' in act or 'enter' in act):
                 if location in ['magic tower']:
@@ -1333,6 +1356,8 @@ def run(deathtext):
                     print("There is a wall blocking your path.")
             elif 'hhhhhhb' in act:
                 location = 'dev'
+            elif 'debug' in act and location=='dev':
+                debug()
             h = False
         run('none')
     zork()
