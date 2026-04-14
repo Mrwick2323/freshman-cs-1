@@ -225,14 +225,13 @@ def derivative(f,x):
     return (f(x+1e-6)-f(x))/1e-6
 def claim(killmap,m):
     gold=0
-    key=0
     for i in killmap:
         gold+=i[0]*(i[1]+random.randint(-5,5))
         for j in range(i[0]):
             if random.randint(0,i[0])==0:
                 key+=1
     gold*=2**m
-    return (gold,key)
+    return gold
 def dungeonfight(killmap,player):
     m=1
     print("\n-------------------\nYou were attacked by an ancient spirit!\n-------------------\n")
@@ -248,6 +247,8 @@ def dungeonfight(killmap,player):
     if enemy['speed']>player['speed']:
         print(f'The ancient spirit attacked you for {(dam:=enemy["damage"]+random.randint(-20,20)/10)}!')
         player['health']-=dam
+        if player['health']<=0:
+            return (False,0)
     while enemy["health"]>0 and player["health"]>0:
         dfi=''
         while dfi not in ['flee','escape','attack','run','fight','items']:
@@ -370,8 +371,9 @@ def dungeonsys(player):
                 else:
                     killmap[-1][-1]+=1
                     m+=outcome[-1]
+                    dungeon[pos[0]][pos[1]]='⬜'
                 fflag=False
-                dungeon[cy][cx]='⬜'
+                
             surroundings=[[],[],[]]
             pastpos=pos.copy()
             def printsurroundings():
@@ -668,6 +670,7 @@ def run(deathtext):
     last = ["Harkjade","Grangrown","Jadedore","Harkde","Grangjade","Brownden","Brownspell","Jashot","Harkrown","Grangrown","Dumblebrown","Harkrown","Rongspell"]
     #player def
     player = {
+    'armor reward':False,
     "stage":0,
     "name": f"{random.choice(first)} {random.choice(last)}",
     "keys":[],
@@ -925,7 +928,7 @@ def run(deathtext):
         },
     "north of the mansion": {
         "description": "You see a large mansion to the south. There are two knights on either side of the door.",
-        "directions": {"north":"castle courtyard", "east":"east of the mansion", "south":"mansion interior", "west":"west of the mansion", "in":"mansion interior"},
+        "directions": {"north":"castle courtyard", "east":"east of the mansion", "south":"wall", "west":"west of the mansion", "in":"mansion interior"},
         "items": [],
         'gold':0,
         "entities": ["knight","knight"]
@@ -988,7 +991,7 @@ def run(deathtext):
         },
     "mansion interior": {
         "description": "ornate interior of the city mansion. the lord is sitting his desk doing paperwork. ",
-        "directions": {"north":"north of the mansion ", "south":"wall", "east":"wall", "west":"wall"},
+        "directions": {"north":"north of the mansion", "south":"wall", "east":"wall", "west":"wall"},
         "items": ["sturdy armor",],
         "gold": 15,
         "requirements": "player['diddungeon']",
@@ -1058,18 +1061,16 @@ def run(deathtext):
         while player["health"]>0:
             if location=='dungeon':
                 outcome=dungeonsys(player)
-                if outcome==False:
-                    run("You lost a fight in the dungeon. Return once you're more prepared")
+                if not outcome:
+                    run("You lost a fight in the dungeon. Return once you're more prepared.")
                 else:
-                    player['money']+=outcome[0]
-                    if 'dungeon keys' in player.keys():
-                        player['dungeon keys']+=outcome[1]
-                    else:
-                        player['dungeon keys']=outcome[1]
+                    player['backpack'][player['backpack'].index('')]=f'dungeon voucher: {outcome}'
                     player['diddungeon']=True
                 location='dungeon entrance'
             elif location=='warp room':
                 location=warpsys(past_locations,map)
+            elif location=='mansion interior':
+
             tct=getct(starttime)
             tl='noneaction'
             condition=False
@@ -1315,9 +1316,23 @@ def run(deathtext):
             elif ('in' in act or 'enter' in act):
                 if location in ['magic tower']:
                     tl='in'
-                elif location=='north of the mansion' and player['diddungeon']:
+                if location=='north of the mansion' and player['diddungeon']:
                     tl='in'
-                elif location in ['shop','night shop'] and 'shop' in player['keys']:
+                else:
+                    print('You see a flyer on the wooden door; it reads:')
+                    print('-------- HELP WANTED ---------')
+                    print('| We are looking for someone |')
+                    print('| who is brave, capable, and |')
+                    print('| and importantly, strong.   |')
+                    print("| Find the dungeon's key,    |")
+                    print('| and delve into the dungeon,|')
+                    print('| purge the restless spirits,|')
+                    print('| and return alive. we will  |')
+                    print('| pay you for every spirit   |')
+                    print('|          killed.           |')
+                    print('------------------------------\n')
+                    print("You: Maybe I should return once i've dealth with that.")
+                if location in ['shop','night shop'] and 'shop' in player['keys']:
                     tl='in'
                 elif location=='dungeon entrance' and 'dungeon' in player['keys']:
                     tl='in'
