@@ -118,7 +118,7 @@ def cmds():
     print(' buy                    - purchases a specified item')
     print(' equip                  - equips the specified item')
     print(' talk                   - used exclusively to talk to the shopkeeper')
-    print(' Tip: sometimes if an enemys speed stat is higher than yours it will attack first')
+    print('Tip: sometimes if an enemys speed stat is higher than yours it will attack first')
 
 def view(map, location):
     print(f"You are in the {location}.\n{map[location]['description']}")
@@ -171,7 +171,7 @@ def fight(map, location, player, enemy, enemies):
             j=input("attack/flee/items? ")
             if "attack" in j:
                 enemies[enemy]["health"]-=player["weapon"]["damage"]+player['strength']
-                print(f'you attacked {enemy} for {player["weapon"]["damage"]+player['strength']} Damage!')
+                print(f'you attacked {enemy} for {player["weapon"]["damage"]+player["strength"]} Damage!')
             elif "items" in j:
                 while True:
                     print(">>>> ")
@@ -258,9 +258,9 @@ def dungeonfight(killmap,player):
             print('You cannot escape from dungeon encounters')
         if dfi in ['fight','attack']:
             if player['weapon']['name']=='ancient staff':
-                print(f'You attacked the ancient spirit for {(dam:=20+random.randint(-20,20)/10)+player['strength']}!\n')
+                print(f'You attacked the ancient spirit for {(dam:=20+random.randint(-20,20)/10)+player["strength"]}!\n')
             else:
-                print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10+player['strength'])}!\n')
+                print(f'You attacked the ancient spirit for {(dam:=player["weapon"]["damage"]+random.randint(-20,20)/10+player["strength"])}!\n')
             enemy['health']-=dam
             if enemy['health']<=0:
                 print('You see the ancient spirit flail in pain, eventually returning to nothing but a pile of ashes on the floor.\n')
@@ -275,7 +275,7 @@ def dungeonfight(killmap,player):
                 return (False,0)
         if dfi=='items':
             # speed potion, death potion, strength potion, money potion
-            print('\n   '.join(player['backpack'].join(' ').split(' ')))
+            print('\n   '.join([i for i in player['backpack'] if i != '']))
             dfit=input('What would you like to use? ')
             if 'health' in dfit and 'health potion' in player['backpack']:
                 player['health']+=5
@@ -1035,8 +1035,6 @@ def run(deathtext):
         ###############################
 
 
-        
-        crimes_commited = 0
         past_locations = ['castle courtyard', ]
         location = "castle courtyard"
         printloc = True
@@ -1057,10 +1055,15 @@ def run(deathtext):
             ''')
             print(deathtext)
             print('\n----------------------------------------------------------------------\n')
+        
         cmds()
         print()
         input("press enter to start  ")
+        r=0
         while player["health"]>0:
+            r+=1
+            if r<11 and r>1:
+                print('\n\nType help for info on commands')   
             if location=='dungeon':
                 outcome=dungeonsys(player)
                 if outcome is False:
@@ -1112,6 +1115,7 @@ def run(deathtext):
             tct=getct(starttime)
             tl='noneaction'
             condition=False
+            
             act=input("\n\n>>>> ")
             # print("\033c", end= "")
             print('\n----------------------------------------------------------------------\n')
@@ -1301,9 +1305,9 @@ def run(deathtext):
                 if location != 'secret room':
                     if 'grab' in act:
                         w='grab'
-                    if 'take' in act:
+                    elif 'take' in act:
                         w='take'
-                    if 'pick up' in act:
+                    elif 'pick up' in act:
                         w='up'
                     tindex = act.index(w)+len(w)
                     if act[tindex+1:] in map[location]["items"]:
@@ -1313,10 +1317,10 @@ def run(deathtext):
                         print(act[tindex+1:], end=' ')
                         print('is not here!')
                 else:
-                    if 'secrets' in locals().keys()+globals().keys():
-                        secrets+=1
+                    if 'secrets' in {**locals(), **globals()}:
+                        player['secrets'] += 1
                     else:
-                        secrets=1
+                        player['secrets'] = 1
             elif 'drop' in act:
                 act=act.split(' ')
                 item=act[act.index('drop')+1:][0]
@@ -1343,7 +1347,7 @@ def run(deathtext):
                 print(f"You collected {map[location]['gold']} gold.")
             elif 'time' in act:
                 print(f'{tct[0]}:{tct[1]} {tct[2]}\n')
-            elif ('north' or "up") in act or act in ['n','go n','u','go u']:
+            elif 'north' in act or 'up' in act or act in ['n','go n','u','go u']:
                 tl='north'
             elif ('east' in act or 'right' in act) or act in ['e','go e','r','go r']:
                 tl='east'
@@ -1387,7 +1391,7 @@ def run(deathtext):
             if tl!='noneaction':
                 if location=='castle courtyard' and tl=='north':
                     if tct[0] in ['8','9','10','11'] and tct[-1]=='A.M.' or tct[0] in ['12','01','02','03','04','05'] and tct[-1]=='P.M.':
-                        if 'secrets' in globals().keys()+locals().keys() and secrets>1:
+                        if 'secrets' in {**globals(), **locals()} and secrets>1:
                             fight(map,location,player,'shopkeeper')
                         location='shop'
                         view(map,location)
@@ -1414,6 +1418,7 @@ def run(deathtext):
                 location = 'dev'
             elif 'debug' in act and location=='dev':
                 debug()
+            
             h = False
         run('none')
     zork()
